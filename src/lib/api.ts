@@ -24,6 +24,11 @@ export interface EmailRequest {
   lead_context?: string;
 }
 
+export interface ChatRequest {
+  company_name: string;
+  question: string;
+}
+
 export interface BookmarkRequest {
   company_name: string;
   analysis_summary: string;
@@ -76,7 +81,7 @@ class ApiClient {
 
   // Project Hunt
   async huntProjects(data: ProjectHuntRequest) {
-    return this.request('/hunt/projects', {
+    return this.request('/projects/hunt', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -84,30 +89,23 @@ class ApiClient {
 
   // Company Analysis
   async analyzeCompany(data: CompanyAnalysisRequest) {
-    return this.request('/analyze/company', {
+    return this.request('/projects/analyze-company', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  // Email Generation
-  async generateEmail(data: EmailRequest) {
-    return this.request('/email/generate', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
+  // Email Generation and Sending
   async sendEmail(data: EmailRequest) {
-    return this.request('/email/send', {
+    return this.request('/sales/email', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  // Bookmarks
+  // Basic Bookmarks
   async addBookmark(data: BookmarkRequest) {
-    return this.request('/bookmarks/add', {
+    return this.request('/projects/bookmark', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -115,60 +113,57 @@ class ApiClient {
 
   async getBookmarks(addedBy?: string) {
     const params = addedBy ? `?added_by=${encodeURIComponent(addedBy)}` : '';
-    return this.request(`/bookmarks/list${params}`);
-  }
-
-  async getBookmarkByCompany(companyName: string) {
-    return this.request(`/bookmarks/company/${encodeURIComponent(companyName)}`);
+    return this.request(`/projects/bookmarks${params}`);
   }
 
   // Enhanced Bookmarks
   async addHuntBookmark(data: HuntBookmarkRequest) {
-    return this.request('/bookmarks/hunt/add', {
+    return this.request('/projects/hunt/bookmark', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async addAnalysisBookmark(data: AnalysisBookmarkRequest) {
-    return this.request('/bookmarks/analysis/add', {
+    return this.request('/projects/analyze-company/bookmark', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async getEnhancedBookmarks() {
-    return this.request('/bookmarks/enhanced/list');
-  }
-
-  async getEnhancedBookmark(id: number) {
-    return this.request(`/bookmarks/enhanced/${id}`);
+  async getEnhancedBookmarks(addedBy?: string, reportType?: string) {
+    const params = new URLSearchParams();
+    if (addedBy) params.append('added_by', addedBy);
+    if (reportType) params.append('report_type', reportType);
+    const queryString = params.toString();
+    return this.request(`/projects/bookmarks/enhanced${queryString ? '?' + queryString : ''}`);
   }
 
   async deleteEnhancedBookmark(id: number) {
-    return this.request(`/bookmarks/enhanced/${id}`, {
+    return this.request(`/projects/bookmarks/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Documents
-  async downloadHuntReport(id: number) {
-    const response = await fetch(`${this.baseUrl}/documents/hunt/download/${id}`);
-    if (!response.ok) throw new Error('Download failed');
-    return response.blob();
-  }
-
-  async downloadAnalysisReport(id: number) {
-    const response = await fetch(`${this.baseUrl}/documents/analysis/download/${id}`);
+  async downloadBookmarkDocument(id: number) {
+    const response = await fetch(`${this.baseUrl}/projects/bookmarks/${id}/download`);
     if (!response.ok) throw new Error('Download failed');
     return response.blob();
   }
 
   // Chat
-  async chat(message: string, context?: string) {
-    return this.request('/chat', {
+  async chat(companyName: string, question: string) {
+    return this.request('/projects/chat', {
       method: 'POST',
-      body: JSON.stringify({ message, context }),
+      body: JSON.stringify({ company_name: companyName, question }),
+    });
+  }
+
+  async chatEnhanced(companyName: string, question: string) {
+    return this.request('/projects/chat/enhanced', {
+      method: 'POST',
+      body: JSON.stringify({ company_name: companyName, question }),
     });
   }
 }

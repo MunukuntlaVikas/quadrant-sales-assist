@@ -43,9 +43,7 @@ export default function Bookmarks() {
 
   const handleDownload = async (id: number, reportType: string, companyName: string) => {
     try {
-      const blob = reportType === 'hunt' 
-        ? await apiClient.downloadHuntReport(id)
-        : await apiClient.downloadAnalysisReport(id);
+      const blob = await apiClient.downloadBookmarkDocument(id);
       
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

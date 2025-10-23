@@ -27,7 +27,9 @@ export default function Conversations() {
     setIsLoading(true);
 
     try {
-      const response: any = await apiClient.chat(input);
+      // For now, use enhanced chat with a default company name
+      // In production, you'd want to extract company name from context or user selection
+      const response: any = await apiClient.chatEnhanced("General", input);
       const assistantMessage: Message = { 
         role: 'assistant', 
         content: response.response || "No response"
